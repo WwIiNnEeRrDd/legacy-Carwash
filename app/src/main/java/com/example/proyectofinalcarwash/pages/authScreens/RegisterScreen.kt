@@ -30,7 +30,6 @@ fun RegisterScreen(
 ) {
     val nombre = remember { mutableStateOf("") }
     val email = remember { mutableStateOf("") }
-    val telefono = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val confirmPassword = remember { mutableStateOf("") }
     val passwordVisible = remember { mutableStateOf(false) }
@@ -90,18 +89,6 @@ fun RegisterScreen(
             )
 
             OutlinedTextField(
-                value = telefono.value,
-                onValueChange = { telefono.value = it },
-                label = { Text("Teléfono") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next,
-                    keyboardType = KeyboardType.Phone
-                )
-            )
-
-            OutlinedTextField(
                 value = password.value,
                 onValueChange = { password.value = it },
                 label = { Text("Contraseña") },
@@ -147,7 +134,7 @@ fun RegisterScreen(
 
             Button(
                 onClick = {
-                    if (nombre.value.isBlank() || email.value.isBlank() || telefono.value.isBlank() || password.value.isBlank() || confirmPassword.value.isBlank()) {
+                    if (nombre.value.isBlank() || email.value.isBlank() || password.value.isBlank() || confirmPassword.value.isBlank()) {
                         Toast.makeText(context, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
                     } else if (password.value != confirmPassword.value) {
                         Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
@@ -155,8 +142,7 @@ fun RegisterScreen(
                         viewModel.register(
                             nombre = nombre.value,
                             email = email.value,
-                            contraseña = password.value,
-                            telefono = telefono.value
+                            contraseña = password.value
                         )
                     }
                 },

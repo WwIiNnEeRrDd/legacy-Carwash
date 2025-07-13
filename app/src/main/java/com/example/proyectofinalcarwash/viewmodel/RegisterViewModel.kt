@@ -2,8 +2,8 @@ package com.example.proyectofinalcarwash.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.example.proyectofinalcarwash.data.api.RetrofitClient
-import com.example.proyectofinalcarwash.data.model.ClienteRegisterRequest
 import com.example.proyectofinalcarwash.data.model.AuthResponse
+import com.example.proyectofinalcarwash.data.model.ClienteRegisterRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import retrofit2.Call
@@ -20,8 +20,8 @@ class RegisterViewModel : ViewModel() {
     private val _registerState = MutableStateFlow<Result<AuthResponse>?>(null)
     val registerState: StateFlow<Result<AuthResponse>?> = _registerState
 
-    fun register(nombre: String, email: String, contraseña: String, telefono: String) {
-        val request = ClienteRegisterRequest(nombre, email, contraseña, telefono)
+    fun register(nombre: String, email: String, contraseña: String) {
+        val request = ClienteRegisterRequest(nombre, email, contraseña, "")
 
         RetrofitClient.api.registerCliente(request).enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {

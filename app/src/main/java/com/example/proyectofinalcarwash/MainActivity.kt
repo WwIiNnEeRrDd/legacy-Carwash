@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
 import com.example.proyectofinalcarwash.navigation.AppNavigation
 import com.example.proyectofinalcarwash.ui.theme.ProyectofinalcarwashTheme
 
@@ -16,10 +15,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val navController = rememberNavController()
             ProyectofinalcarwashTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    AppNavigation(navController = navController)
+                    AppNavigation()
                 }
             }
         }

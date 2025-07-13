@@ -1,4 +1,6 @@
 package com.example.proyectofinalcarwash.pages.authScreens
+
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -12,29 +14,45 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectofinalcarwash.R
+import com.example.proyectofinalcarwash.viewmodel.LoginViewModel
+import com.example.proyectofinalcarwash.viewmodel.LoginResult
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    onLoginClick: (String, String) -> Unit,
-    onRegisterClick: () -> Unit
+    onSuccessLogin: () -> Unit,
+    onRegisterClick: () -> Unit,
+    viewModel: LoginViewModel = viewModel()
 ) {
-    val username = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-    val passwordVisible = remember { mutableStateOf(false) }
-
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
+    val email = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    val passwordVisible = remember { mutableStateOf(false) }
+
+    val loginState by viewModel.loginState.collectAsState()
+
+    LaunchedEffect(loginState) {
+        when (val result = loginState) {
+            is LoginResult.Success -> {
+                Toast.makeText(context, "Bienvenido", Toast.LENGTH_SHORT).show()
+                onSuccessLogin()
+            }
+            is LoginResult.Error -> {
+                Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
+            }
+            else -> Unit
+        }
+    }
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -48,20 +66,21 @@ fun LoginScreen(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo Legacy Carwash",
                 modifier = Modifier
-                    .height(240.dp)
+                    .height(200.dp)
                     .padding(bottom = 32.dp)
             )
 
             OutlinedTextField(
-                value = username.value,
-                onValueChange = { username.value = it },
-                label = { Text("Usuario") },
+                value = email.value,
+                onValueChange = { email.value = it },
+                label = { Text("Correo electrónico") },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Email
                 )
             )
 
@@ -75,12 +94,10 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next,
+                    imeAction = ImeAction.Done,
                     keyboardType = KeyboardType.Password
                 ),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                }),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 trailingIcon = {
                     val icon = if (passwordVisible.value) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     val desc = if (passwordVisible.value) "Ocultar contraseña" else "Mostrar contraseña"
@@ -92,7 +109,11 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    onLoginClick(username.value, password.value)
+                    if (email.value.isBlank() || password.value.isBlank()) {
+                        Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+                    } else {
+                        viewModel.login(email.value.trim(), password.value)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,9 +122,7 @@ fun LoginScreen(
                 Text("Iniciar Sesión")
             }
 
-            TextButton(
-                onClick = { onRegisterClick() },
-            ) {
+            TextButton(onClick = onRegisterClick) {
                 Text("¿No tienes cuenta? Registrarse")
             }
         }
