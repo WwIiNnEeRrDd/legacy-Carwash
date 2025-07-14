@@ -37,4 +37,7 @@ interface ApiService {
     // ✅ Token inyectado por AuthInterceptor
     @POST("/api/citas/agendar")
     suspend fun crearCita(@Body cita: CrearCitaRequest): Response<Unit>
+
+    @GET("/api/citas/proxima")
+    suspend fun getProximaCita(): Response<Cita>
 }

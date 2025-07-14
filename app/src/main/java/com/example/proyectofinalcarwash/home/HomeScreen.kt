@@ -1,20 +1,28 @@
 package com.example.proyectofinalcarwash.home
 
+import android.content.Context
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import com.example.proyectofinalcarwash.R
+import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.lazy.LazyColumn
 
 @Composable
 fun HomeScreen(
@@ -22,6 +30,17 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedItem by remember { mutableStateOf(0) }
+
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
+    val nombreUsuario = remember { prefs.getString("nombre", "usuario") ?: "usuario" }
+
+    val viewModel: CitasViewModel = viewModel()
+    val proximaCita by viewModel.proximaCita.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchProximaCita()
+    }
 
     val promociones = listOf(
         "15% de descuento en Lavado Premium hasta el 20 de julio",
@@ -59,13 +78,24 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        androidx.compose.foundation.lazy.LazyColumn(
-            contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.padding(24.dp)
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                Text("Bienvenido, user", style = MaterialTheme.typography.headlineSmall)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Text("Bienvenido, $nombreUsuario", style = MaterialTheme.typography.headlineSmall)
+                }
             }
 
             item {
@@ -76,11 +106,17 @@ fun HomeScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("Próxima cita", style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("📅 Fecha: 2025-07-20")
-                        Text("🕒 Hora: 10:30 AM")
-                        Text("🚗 Vehículo: Toyota Corolla")
-                        Text("🧽 Servicio: Lavado completo")
-                        Text("📌 Estado: Confirmada")
+
+                        if (proximaCita != null) {
+                            val cita = proximaCita!!
+                            Text("📅 Fecha: ${cita.fecha_cita.take(10)}")
+                            Text("🕒 Hora: ${cita.hora_cita.take(5)}")
+                            Text("🚗 Vehículo: ${cita.placa}")
+                            Text("🧽 Servicio: ${cita.nombre_servicio}")
+                            Text("📌 Estado: ${cita.estado}")
+                        } else {
+                            Text("No tienes citas próximas agendadas.")
+                        }
                     }
                 }
             }
@@ -128,7 +164,6 @@ fun HomeScreen(
                 Text("Acciones rápidas", style = MaterialTheme.typography.titleMedium)
             }
 
-            // Grid dentro de LazyColumn
             item {
                 val acciones = listOf(
                     Triple("Agendar cita", Icons.Default.Add, "agendarCita"),
@@ -143,7 +178,7 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp) // Ajusta según cantidad de items
+                        .height(400.dp)
                 ) {
                     items(acciones.size) { index ->
                         val (titulo, icono, ruta) = acciones[index]
@@ -177,7 +212,6 @@ fun HomeScreen(
         }
     }
 }
-
 
 data class BottomNavItem(
     val label: String,

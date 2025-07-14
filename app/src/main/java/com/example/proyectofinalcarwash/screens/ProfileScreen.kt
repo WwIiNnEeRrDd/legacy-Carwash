@@ -94,8 +94,12 @@ fun ProfileScreen(
                     navController.navigate("editarPerfil")
                 }
                 SettingCard(icon = Icons.Default.Logout, label = "Cerrar Sesión") {
-                    // Limpiar SharedPreferences al cerrar sesión
-                    prefs.edit().clear().apply()
+                    context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                        .edit().clear().apply()
+
+                    context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                        .edit().clear().apply()
+
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true } // limpia la pila
                     }
