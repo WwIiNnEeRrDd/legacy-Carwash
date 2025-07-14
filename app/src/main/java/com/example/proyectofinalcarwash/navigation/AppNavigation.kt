@@ -26,6 +26,11 @@ import com.example.proyectofinalcarwash.ui.components.MainLayout
 import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.proyectofinalcarwash.promotions.PromotionScreen
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -187,6 +192,27 @@ fun AppNavigation() {
 
         composable("agregarVehiculo") {
             AgregarVehiculoScreen(navController = navController)
+        }
+
+        composable("historial") {
+            HistorialScreen(navController)
+        }
+
+        composable(
+            "promotion/{promotionText}",
+            arguments = listOf(
+                navArgument("promotionText") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = false
+                }
+            )
+        ) { backStackEntry ->
+            val promotionText = backStackEntry.arguments?.getString("promotionText") ?: ""
+            PromotionScreen(
+                navController = navController,
+                promotionText = promotionText
+            )
         }
     }
 }

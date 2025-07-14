@@ -29,8 +29,10 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             try {
                 val api = RetrofitClient.create(getApplication())
-                val response = api.registerCliente(request) // llamada suspend
-                saveToken(response.token)
+                val response = api.registerCliente(request)
+
+                guardarTokenYDatos(response)
+
                 _registerState.value = Result.Success(response)
             } catch (e: HttpException) {
                 _registerState.value = Result.Failure(Throwable("Error HTTP: ${e.message()}"))
@@ -42,8 +44,23 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun saveToken(token: String) {
-        val sharedPrefs = getApplication<Application>().getSharedPreferences("auth", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putString("token", token).apply()
+    private fun guardarTokenYDatos(response: AuthResponse) {
+        val app = getApplication<Application>()
+
+        // Guardar token
+        app.getSharedPreferences("auth", Context.MODE_PRIVATE).edit().apply {
+            putString("token", response.token)
+            apply()
+        }
+
+        // Guardar datos del cliente
+        val cliente = response.cliente
+        app.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit().apply {
+            putString("nombre", cliente.nombre)
+            putString("email", cliente.email)
+            putString("telefono", cliente.telefono)
+            putString("residencia", cliente.residencia)
+            apply()
+        }
     }
 }

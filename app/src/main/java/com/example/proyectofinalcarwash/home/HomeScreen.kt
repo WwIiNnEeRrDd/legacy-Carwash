@@ -1,6 +1,9 @@
 package com.example.proyectofinalcarwash.home
 
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -9,12 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.proyectofinalcarwash.home.HomeScreen
 import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 
 @Composable
 fun HomeScreen(
@@ -23,99 +23,153 @@ fun HomeScreen(
 ) {
     var selectedItem by remember { mutableStateOf(0) }
 
+    val promociones = listOf(
+        "15% de descuento en Lavado Premium hasta el 20 de julio",
+        "Promoción: 2x1 en Pulido de pintura este fin de semana",
+        "Nuevo servicio disponible: Desinfección interior"
+    )
+
+    val tips = listOf(
+        "Lava tu coche cada 2 semanas para evitar acumulación de suciedad.",
+        "Usa cera líquida después del lavado para proteger la pintura.",
+        "Evita dejar el coche al sol tras un lavado para prevenir manchas.",
+        "Limpia el interior al menos 1 vez al mes para conservar los materiales."
+    )
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                val items = listOf(
-                    BottomNavItem("Inicio", Icons.Default.Home, "home"),
-                    BottomNavItem("Servicios", Icons.Default.Build, "services"),
-                    BottomNavItem("Perfil", Icons.Default.Person, "profile") // Este puedes crear luego
-                )
+            val items = listOf(
+                BottomNavItem("Inicio", Icons.Default.Home, "home"),
+                BottomNavItem("Servicios", Icons.Default.Build, "services"),
+                BottomNavItem("Perfil", Icons.Default.Person, "profile")
+            )
 
-                NavigationBar {
-                    items.forEachIndexed { index, item ->
-                        NavigationBarItem(
-                            icon = { Icon(item.icon, contentDescription = item.label) },
-                            label = { Text(item.label) },
-                            selected = selectedItem == index,
-                            onClick = {
-                                selectedItem = index
-                                navController.navigate(item.route)
-                            }
-                        )
-                    }
+            NavigationBar {
+                items.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        icon = { Icon(item.icon, contentDescription = item.label) },
+                        label = { Text(item.label) },
+                        selected = selectedItem == index,
+                        onClick = {
+                            selectedItem = index
+                            navController.navigate(item.route)
+                        }
+                    )
                 }
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(24.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+        androidx.compose.foundation.lazy.LazyColumn(
+            contentPadding = paddingValues,
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.padding(24.dp)
         ) {
+            item {
+                Text("Bienvenido, user", style = MaterialTheme.typography.headlineSmall)
+            }
 
-            Text(
-                text = "Bienvenido, user", /* nombre random de prueba */
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Próxima cita", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("📅 Fecha: 2025-07-20")
-                    Text("🕒 Hora: 10:30 AM")
-                    Text("🚗 Vehículo: Toyota Corolla")
-                    Text("🧽 Servicio: Lavado completo")
-                    Text("📌 Estado: Confirmada")
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Próxima cita", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("📅 Fecha: 2025-07-20")
+                        Text("🕒 Hora: 10:30 AM")
+                        Text("🚗 Vehículo: Toyota Corolla")
+                        Text("🧽 Servicio: Lavado completo")
+                        Text("📌 Estado: Confirmada")
+                    }
                 }
             }
 
-            Text("Acciones rápidas", style = MaterialTheme.typography.titleMedium)
-
-            // Nueva grilla de acciones rápidas estilo Speed Dial
-            val acciones = listOf(
-                Triple("Agendar cita", Icons.Default.Add, "agendarCita"),
-                Triple("Mis vehículos", Icons.Default.DirectionsCar, "vehicle"),
-                Triple("Ver servicios", Icons.Default.Build, "services"),
-                Triple("Historial", Icons.Default.History, "historial")
-            )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxHeight()
-            ) {
-                items(acciones.size) { index ->
-                    val (titulo, icono, ruta) = acciones[index]
-                    Card(
-                        onClick = { navController.navigate(ruta) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f), // Cuadrado
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Column(
+            item {
+                Text("📢 Promociones", style = MaterialTheme.typography.titleMedium)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(promociones.size) { index ->
+                        Card(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .width(260.dp)
+                                .height(120.dp)
+                                .clickable {
+                                    navController.navigate("promotion/${Uri.encode(promociones[index])}")
+                                },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
                         ) {
-                            Icon(
-                                icono,
-                                contentDescription = titulo,
-                                modifier = Modifier.size(40.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(titulo, style = MaterialTheme.typography.bodyMedium)
+                            Box(modifier = Modifier.padding(16.dp)) {
+                                Text(promociones[index])
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Text("💡 Tips de mantenimiento", style = MaterialTheme.typography.titleMedium)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(tips.size) { index ->
+                        Card(
+                            modifier = Modifier
+                                .width(260.dp)
+                                .height(120.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                        ) {
+                            Box(modifier = Modifier.padding(16.dp)) {
+                                Text(tips[index])
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Text("Acciones rápidas", style = MaterialTheme.typography.titleMedium)
+            }
+
+            // Grid dentro de LazyColumn
+            item {
+                val acciones = listOf(
+                    Triple("Agendar cita", Icons.Default.Add, "agendarCita"),
+                    Triple("Mis vehículos", Icons.Default.DirectionsCar, "vehicle"),
+                    Triple("Ver servicios", Icons.Default.Build, "services"),
+                    Triple("Historial", Icons.Default.History, "historial")
+                )
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp) // Ajusta según cantidad de items
+                ) {
+                    items(acciones.size) { index ->
+                        val (titulo, icono, ruta) = acciones[index]
+                        Card(
+                            onClick = { navController.navigate(ruta) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    icono,
+                                    contentDescription = titulo,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(titulo, style = MaterialTheme.typography.bodyMedium)
+                            }
                         }
                     }
                 }
@@ -123,6 +177,7 @@ fun HomeScreen(
         }
     }
 }
+
 
 data class BottomNavItem(
     val label: String,

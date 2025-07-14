@@ -2,8 +2,13 @@ package com.example.proyectofinalcarwash.screens
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarToday
@@ -12,26 +17,43 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
+import com.example.proyectofinalcarwash.viewmodel.VehiculosViewModel
+import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
+import com.example.proyectofinalcarwash.data.model.CrearCitaRequest
+import kotlinx.coroutines.launch
 import java.util.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppointmentScreen(
+    modifier: Modifier = Modifier,
     navController: NavController,
-    modifier: Modifier = Modifier
+    vehiculosViewModel: VehiculosViewModel = viewModel(),
+    serviciosViewModel: ServiciosViewModel = viewModel(),
+    citasViewModel: CitasViewModel = viewModel()
 ) {
-    // Datos de prueba
-    val servicios = listOf("Lavado completo", "Cambio de aceite", "Pulido de pintura")
-    val vehiculos = listOf("Toyota Corolla", "Honda Civic", "Mazda 3")
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-    var servicioSeleccionado by remember { mutableStateOf<String?>(null) }
+    val vehiculos by vehiculosViewModel.vehiculos.collectAsState()
+    val servicios by serviciosViewModel.servicios.collectAsState()
+
     var vehiculoSeleccionado by remember { mutableStateOf<String?>(null) }
+    var servicioSeleccionado by remember { mutableStateOf<String?>(null) }
     var fecha by remember { mutableStateOf("") }
     var hora by remember { mutableStateOf("") }
+    var comentario by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
+    val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        vehiculosViewModel.fetchVehiculos()
+        serviciosViewModel.fetchServicios()
+    }
 
     Scaffold(
         topBar = {
@@ -42,40 +64,65 @@ fun AppointmentScreen(
             modifier = modifier
                 .padding(innerPadding)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            ExposedDropdownMenu(
+            CustomDropdownMenu(
                 label = "Selecciona un vehículo",
-                options = vehiculos,
+                options = vehiculos.map { "${it.id} - ${it.placa}" },
                 selectedOption = vehiculoSeleccionado,
                 onOptionSelected = { vehiculoSeleccionado = it }
             )
 
-            ExposedDropdownMenu(
+            CustomDropdownMenu(
                 label = "Selecciona un servicio",
-                options = servicios,
+                options = servicios.map { "${it.id_servicio} - ${it.nombre_servicio}" },
                 selectedOption = servicioSeleccionado,
                 onOptionSelected = { servicioSeleccionado = it }
             )
 
-            DateSelector(
-                label = "Selecciona una fecha",
-                date = fecha,
-                onDateSelected = { fecha = it }
-            )
+            DateSelector("Selecciona una fecha", fecha) { fecha = it }
 
-            TimeSelector(
-                label = "Selecciona una hora",
-                time = hora,
-                onTimeSelected = { hora = it }
+            TimeSelector("Selecciona una hora", hora) { hora = it }
+
+            OutlinedTextField(
+                value = comentario,
+                onValueChange = { comentario = it },
+                label = { Text("Comentario (opcional)") },
+                modifier = Modifier.fillMaxWidth()
             )
 
             Button(
                 onClick = {
-                    // Aquí puedes guardar la cita
-                    navController.popBackStack()
+                    val idVehiculo = vehiculoSeleccionado?.split(" - ")?.get(0)?.toIntOrNull()
+                    val idServicio = servicioSeleccionado?.split(" - ")?.get(0)?.toIntOrNull()
+
+                    if (idVehiculo == null || idServicio == null || fecha.isBlank() || hora.isBlank()) {
+                        Toast.makeText(context, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val request = CrearCitaRequest(
+                        id_vehiculo = idVehiculo,
+                        id_servicio = idServicio,
+                        fecha_cita = fecha,
+                        hora_cita = hora,
+                        comentario_cliente = comentario
+                    )
+
+                    coroutineScope.launch {
+                        citasViewModel.crearCita(
+                            request,
+                            onSuccess = {
+                                Toast.makeText(context, "Cita creada correctamente", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            },
+                            onError = { errorMsg ->
+                                Toast.makeText(context, "Error: $errorMsg", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -87,7 +134,7 @@ fun AppointmentScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExposedDropdownMenu(
+fun CustomDropdownMenu(
     label: String,
     options: List<String>,
     selectedOption: String?,
@@ -97,26 +144,19 @@ fun ExposedDropdownMenu(
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
+        onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
             value = selectedOption.orEmpty(),
-            onValueChange = { /* no-op */ },
+            onValueChange = {},
             readOnly = true,
             label = { Text(label) },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth()
         )
-
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
+            onDismissRequest = { expanded = false }
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
@@ -132,11 +172,7 @@ fun ExposedDropdownMenu(
 }
 
 @Composable
-fun DateSelector(
-    label: String,
-    date: String,
-    onDateSelected: (String) -> Unit
-) {
+fun DateSelector(label: String, date: String, onDateSelected: (String) -> Unit) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
@@ -168,11 +204,7 @@ fun DateSelector(
 }
 
 @Composable
-fun TimeSelector(
-    label: String,
-    time: String,
-    onTimeSelected: (String) -> Unit
-) {
+fun TimeSelector(label: String, time: String, onTimeSelected: (String) -> Unit) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 

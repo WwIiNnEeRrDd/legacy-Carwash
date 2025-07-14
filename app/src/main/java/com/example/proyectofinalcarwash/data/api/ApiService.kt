@@ -25,4 +25,14 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body vehiculo: VehiculoRequest
     ): Response<CrearVehiculoResponse>
+
+    @GET("/api/citas/mis-citas")
+    suspend fun getCitas(): Response<List<Cita>>
+
+    @POST("/api/citas/agendar")
+    suspend fun crearCita(
+        @Body cita: CrearCitaRequest
+    ): Response<Unit>
+
 }
+

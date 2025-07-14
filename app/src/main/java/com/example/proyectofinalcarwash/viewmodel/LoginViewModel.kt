@@ -21,6 +21,7 @@ sealed class LoginResult {
 }
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
+
     private val _loginState = MutableStateFlow<LoginResult>(LoginResult.Idle)
     val loginState: StateFlow<LoginResult> = _loginState
 
@@ -32,7 +33,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val api = RetrofitClient.create(getApplication())
                 val response = api.loginCliente(request)
-                saveToken(response.token)
+
+                guardarTokenYDatos(response)
+
                 _loginState.value = LoginResult.Success(response)
             } catch (e: HttpException) {
                 _loginState.value = LoginResult.Error("Error del servidor: ${e.message}")
@@ -44,8 +47,23 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun saveToken(token: String) {
-        val sharedPrefs = getApplication<Application>().getSharedPreferences("auth", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putString("token", token).apply()
+    private fun guardarTokenYDatos(response: AuthResponse) {
+        val app = getApplication<Application>()
+
+        // Guardar token
+        app.getSharedPreferences("auth", Context.MODE_PRIVATE).edit().apply {
+            putString("token", response.token)
+            apply()
+        }
+
+        // Guardar datos del cliente
+        val cliente = response.cliente
+        app.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit().apply {
+            putString("nombre", cliente.nombre)
+            putString("email", cliente.email)
+            putString("telefono", cliente.telefono)
+            putString("residencia", cliente.residencia)
+            apply()
+        }
     }
 }

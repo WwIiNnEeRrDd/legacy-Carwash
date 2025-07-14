@@ -6,8 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
@@ -15,48 +15,44 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.proyectofinalcarwash.data.model.toVisual
+import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.*
-
-data class Cita(
-    val fecha: LocalDate,
-    val hora: String,
-    val duracionMin: Int,
-    val servicio: String,
-    val vehiculo: String
-)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    citasViewModel: CitasViewModel = viewModel()
 ) {
     val hoy = LocalDate.now()
-
-    // Citas de prueba
-    val citas = listOf(
-        Cita(hoy.plusDays(0), "09:00", 30, "Lavado rápido", "Toyota Yaris"),
-        Cita(hoy.plusDays(0), "17:00", 45, "Lavado completo", "Honda Civic SI"),
-        Cita(hoy.plusDays(1), "10:00", 45, "Lavado completo", "Toyota Corolla"),
-        Cita(hoy.plusDays(2), "11:30", 60, "Cambio de aceite", "Mazda 3"),
-        Cita(hoy.plusDays(3), "13:00", 90, "Pulido de pintura", "Honda Civic"),
-        Cita(hoy.minusDays(1), "08:00", 30, "Lavado interior", "Nissan Versa"),
-        Cita(hoy.minusDays(2), "15:00", 60, "Encerado", "Ford Focus")
-    )
-
     var diaSeleccionado by remember { mutableStateOf(hoy) }
+
+    val citas by citasViewModel.citas.collectAsState()
+
+    val citasVisuales = remember(citas) {
+        runCatching {
+            citas.map { it.toVisual() }
+        }.getOrDefault(emptyList())
+    }
+    val citasFiltradas = citasVisuales.filter { it.fecha == diaSeleccionado }
+
     val rangoDias = (-10..10).map { hoy.plusDays(it.toLong()) }
     val indexHoy = rangoDias.indexOf(hoy)
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
+        citasViewModel.fetchCitas()
         listState.scrollToItem(indexHoy)
     }
 
@@ -66,7 +62,7 @@ fun CalendarScreen(
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .padding(paddingValues)
                 .padding(8.dp)
         ) {
@@ -84,15 +80,8 @@ fun CalendarScreen(
                             .clickable { diaSeleccionado = fecha }
                             .then(
                                 if (esHoy) Modifier
-                                    .background(
-                                        Color.Transparent,
-                                        shape = MaterialTheme.shapes.small
-                                    )
-                                    .border(
-                                        width = 2.dp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = MaterialTheme.shapes.small
-                                    )
+                                    .background(Color.Transparent, shape = MaterialTheme.shapes.small)
+                                    .border(2.dp, MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small)
                                 else Modifier
                             )
                             .background(
@@ -117,8 +106,6 @@ fun CalendarScreen(
                     }
                 }
             }
-
-            val citasFiltradas = citas.filter { it.fecha == diaSeleccionado }
 
             if (citasFiltradas.isEmpty()) {
                 Box(
