@@ -23,7 +23,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
     private val _registerState = MutableStateFlow<Result<AuthResponse>?>(null)
     val registerState: StateFlow<Result<AuthResponse>?> = _registerState
 
-    fun register(nombre: String, email: String, contraseña: String, telefono: String) {
+    fun register(nombre: String, email: String, contraseña: String) {
         val request = ClienteRegisterRequest(nombre, email, contraseña)
 
         viewModelScope.launch {

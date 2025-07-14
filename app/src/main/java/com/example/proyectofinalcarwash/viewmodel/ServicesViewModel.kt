@@ -1,7 +1,6 @@
 package com.example.proyectofinalcarwash.viewmodel
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectofinalcarwash.data.api.RetrofitClient
@@ -22,9 +21,9 @@ class ServiciosViewModel(application: Application) : AndroidViewModel(applicatio
     fun fetchServicios() {
         viewModelScope.launch {
             try {
-                val token = getTokenFromPrefs()
+
                 val api = RetrofitClient.create(getApplication())
-                val serviciosObtenidos = api.getServicios("Bearer $token")
+                val serviciosObtenidos = api.getServicios()
                 _servicios.value = serviciosObtenidos
             } catch (e: IOException) {
                 _error.value = "No se pudo conectar al servidor"
@@ -34,9 +33,4 @@ class ServiciosViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun getTokenFromPrefs(): String {
-        val prefs = getApplication<Application>()
-            .getSharedPreferences("auth", Context.MODE_PRIVATE)
-        return prefs.getString("token", "") ?: ""
-    }
 }

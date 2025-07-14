@@ -24,7 +24,7 @@ class CitasViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val api = RetrofitClient.create(getApplication())
-                val response = api.getCitas() // sin token explícito
+                val response = api.getCitas()
 
                 if (response.isSuccessful) {
                     _citas.value = response.body() ?: emptyList()
@@ -49,10 +49,10 @@ class CitasViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val api = RetrofitClient.create(getApplication())
-                val response = api.crearCita(request) // sin token explícito
+                val response = api.crearCita(request)
 
                 if (response.isSuccessful) {
-                    fetchCitas()
+                    fetchCitas() // Actualiza la lista tras crear
                     onSuccess()
                 } else {
                     onError("Error del servidor: ${response.code()} - ${response.message()}")

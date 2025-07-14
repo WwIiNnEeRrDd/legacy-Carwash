@@ -141,8 +141,7 @@ fun RegisterScreen(
                         viewModel.register(
                             nombre = nombre.value,
                             email = email.value,
-                            contraseña = password.value,
-                            telefono = "" // si no se pide en UI, ponlo vacío
+                            contraseña = password.value
                         )
                     }
                 },

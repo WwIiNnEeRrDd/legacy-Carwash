@@ -13,7 +13,8 @@ data class Cita(
     val comentario_cliente: String,
     val fecha_creacion: String,
     val placa: String,
-    val nombre_servicio: String
+    val nombre_servicio: String,
+    val duracion_estimada: Int
 )
 
 // Modelo que usas al momento de crear una nueva cita
@@ -42,7 +43,7 @@ fun Cita.toVisual(): CitaVisual {
     return CitaVisual(
         fecha = fechaLocalDate,
         hora = this.hora_cita.take(5), // "10:00:00" → "10:00"
-        duracionMin = 30, // Puedes mejorarlo según servicio
+        duracionMin = this.duracion_estimada,
         servicio = this.nombre_servicio,
         vehiculo = this.placa
     )

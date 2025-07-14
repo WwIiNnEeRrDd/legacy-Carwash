@@ -1,7 +1,6 @@
 package com.example.proyectofinalcarwash.viewmodel
 
 import android.app.Application
-import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectofinalcarwash.data.api.RetrofitClient
@@ -28,14 +27,8 @@ class VehiculosViewModel(application: Application) : AndroidViewModel(applicatio
     fun fetchVehiculos() {
         viewModelScope.launch {
             try {
-                val token = obtenerToken()
-                if (token.isBlank()) {
-                    _error.value = "Token no disponible. Inicia sesión nuevamente."
-                    return@launch
-                }
-
                 val api = RetrofitClient.create(getApplication())
-                val response = api.getMisVehiculos("Bearer $token")
+                val response = api.getMisVehiculos()
 
                 if (response.isSuccessful) {
                     _vehiculos.value = response.body() ?: emptyList()
@@ -59,14 +52,8 @@ class VehiculosViewModel(application: Application) : AndroidViewModel(applicatio
     ) {
         viewModelScope.launch {
             try {
-                val token = obtenerToken()
-                if (token.isBlank()) {
-                    onError("Token no disponible. Vuelve a iniciar sesión.")
-                    return@launch
-                }
-
                 val api = RetrofitClient.create(getApplication())
-                val response = api.crearVehiculo("Bearer $token", vehiculoRequest)
+                val response = api.crearVehiculo(vehiculoRequest)
 
                 when {
                     response.isSuccessful -> {
@@ -89,10 +76,5 @@ class VehiculosViewModel(application: Application) : AndroidViewModel(applicatio
                 onError("Error: ${e.message}")
             }
         }
-    }
-
-    private fun obtenerToken(): String {
-        val prefs = getApplication<Application>().getSharedPreferences("auth", Context.MODE_PRIVATE)
-        return prefs.getString("token", "") ?: ""
     }
 }
