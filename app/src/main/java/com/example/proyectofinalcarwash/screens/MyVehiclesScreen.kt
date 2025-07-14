@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,52 +32,48 @@ fun MisVehiculosScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Mis Vehículos") })
+            TopAppBar(
+                title = { Text("Mis Vehículos") }
+            )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("agregarVehiculo") },
-                containerColor = MaterialTheme.colorScheme.primary
+        content = { innerPadding ->
+            LazyColumn(
+                modifier = modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar Vehículo")
-            }
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (error != null) {
-                item {
-                    Text("Error: $error", color = MaterialTheme.colorScheme.error)
-                }
-            }
-
-            if (vehiculos.isEmpty()) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 64.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                if (error != null) {
+                    item {
                         Text(
-                            "Aún no tienes vehículos registrados.",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            "Error: $error",
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
-            } else {
-                items(vehiculos) { vehiculo ->
-                    VehiculoCard(vehiculo)
+
+                if (vehiculos.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 64.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "Aún no tienes vehículos registrados.",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    items(vehiculos) { vehiculo ->
+                        VehiculoCard(vehiculo)
+                    }
                 }
             }
         }
-    }
+    )
 }
 
 @Composable

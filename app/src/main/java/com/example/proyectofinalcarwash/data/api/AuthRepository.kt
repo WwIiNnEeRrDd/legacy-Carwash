@@ -15,7 +15,7 @@ object AuthRepository {
     ): Result<AuthResponse> {
         return try {
             val api = RetrofitClient.create(context)
-            val request = ClienteRegisterRequest(nombre, email, contraseña, telefono)
+            val request = ClienteRegisterRequest(nombre, email, contraseña)
             val response = api.registerCliente(request)
             Result.success(response)
         } catch (e: Exception) {

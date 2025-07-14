@@ -16,9 +16,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ProyectofinalcarwashTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    AppNavigation()
-                }
+                AppNavigation()
             }
         }
     }

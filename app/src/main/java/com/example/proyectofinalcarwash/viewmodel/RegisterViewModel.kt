@@ -24,7 +24,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
     val registerState: StateFlow<Result<AuthResponse>?> = _registerState
 
     fun register(nombre: String, email: String, contraseña: String, telefono: String) {
-        val request = ClienteRegisterRequest(nombre, email, contraseña, telefono)
+        val request = ClienteRegisterRequest(nombre, email, contraseña)
 
         viewModelScope.launch {
             try {

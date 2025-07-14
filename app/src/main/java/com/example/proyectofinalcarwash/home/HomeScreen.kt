@@ -81,7 +81,7 @@ fun HomeScreen(
             // Nueva grilla de acciones rápidas estilo Speed Dial
             val acciones = listOf(
                 Triple("Agendar cita", Icons.Default.Add, "agendarCita"),
-                Triple("Mis vehículos", Icons.Default.DirectionsCar, "vehiculos"),
+                Triple("Mis vehículos", Icons.Default.DirectionsCar, "vehicle"),
                 Triple("Ver servicios", Icons.Default.Build, "services"),
                 Triple("Historial", Icons.Default.History, "historial")
             )

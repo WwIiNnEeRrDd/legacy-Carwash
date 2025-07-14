@@ -17,11 +17,13 @@ data class BottomNavItem(val label: String, val route: String, val icon: ImageVe
 fun MainLayout(
     navController: NavController,
     currentDestination: NavDestination?,
+    floatingActionButton: (@Composable (() -> Unit))? = null,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val bottomNavItems = listOf(
         BottomNavItem("Inicio", "home", Icons.Default.Home),
         BottomNavItem("Servicios", "services", Icons.Default.Build),
+        BottomNavItem("Vehículos", "vehicle", Icons.Default.DirectionsCar),
         BottomNavItem("Calendario", "calendar", Icons.Default.CalendarToday),
         BottomNavItem("Perfil", "profile", Icons.Default.Person)
     )
@@ -46,7 +48,8 @@ fun MainLayout(
                     )
                 }
             }
-        }
+        },
+        floatingActionButton = floatingActionButton ?: {},
     ) { innerPadding ->
         content(innerPadding)
     }

@@ -1,6 +1,12 @@
 package com.example.proyectofinalcarwash.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.NavHost
@@ -17,6 +23,7 @@ import com.example.proyectofinalcarwash.screens.*
 import com.example.proyectofinalcarwash.ui.components.MainLayout
 import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun AppNavigation() {
@@ -107,12 +114,32 @@ fun AppNavigation() {
             }
         }
 
-        composable("vehiculos") {
+        composable("editarPerfil") {
+            EditarPerfilScreen(navController = navController)
+        }
+
+        composable("vehicle") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
-            MainLayout(navController, currentDestination) { innerPadding ->
+            MainLayout(
+                navController,
+                currentDestination,
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = { navController.navigate("agregarVehiculo") },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(80.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Agregar Vehículo",
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                }
+            ) { innerPadding ->
                 MisVehiculosScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    navController = navController
+                    navController = navController,
+                    modifier = Modifier.padding(innerPadding)
                 )
             }
         }
