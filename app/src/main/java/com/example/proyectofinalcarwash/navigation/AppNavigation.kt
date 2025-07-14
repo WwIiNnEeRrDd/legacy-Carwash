@@ -106,5 +106,19 @@ fun AppNavigation() {
                 )
             }
         }
+
+        composable("vehiculos") {
+            val currentDestination = navController.currentBackStackEntryAsState().value?.destination
+            MainLayout(navController, currentDestination) { innerPadding ->
+                MisVehiculosScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    navController = navController
+                )
+            }
+        }
+
+        composable("agregarVehiculo") {
+            AgregarVehiculoScreen(navController = navController)
+        }
     }
 }

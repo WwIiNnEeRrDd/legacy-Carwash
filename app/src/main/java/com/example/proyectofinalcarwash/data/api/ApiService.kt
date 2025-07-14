@@ -4,6 +4,8 @@ import com.example.proyectofinalcarwash.data.model.AuthResponse
 import com.example.proyectofinalcarwash.data.model.ClienteLoginRequest
 import com.example.proyectofinalcarwash.data.model.ClienteRegisterRequest
 import com.example.proyectofinalcarwash.data.model.Servicio
+import com.example.proyectofinalcarwash.data.model.Vehiculo
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -18,4 +20,7 @@ interface ApiService {
 
     @GET("/api/servicios")
     suspend fun getServicios(@Header("Authorization") token: String): List<Servicio>
+
+    @GET("/api/vehiculos/mis-vehiculos")
+    suspend fun getMisVehiculos(@Header("Authorization") token: String): Response<List<Vehiculo>>
 }

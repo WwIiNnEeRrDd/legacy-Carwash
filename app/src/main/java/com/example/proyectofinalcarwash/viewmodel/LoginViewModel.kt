@@ -31,7 +31,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val api = RetrofitClient.create(getApplication())
-                val response = api.loginCliente(request) // ✅ llamada suspend
+                val response = api.loginCliente(request)
                 saveToken(response.token)
                 _loginState.value = LoginResult.Success(response)
             } catch (e: HttpException) {
