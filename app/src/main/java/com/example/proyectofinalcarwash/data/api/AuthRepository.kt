@@ -1,35 +1,25 @@
 package com.example.proyectofinalcarwash.data.api
 
+import android.content.Context
 import com.example.proyectofinalcarwash.data.model.AuthResponse
 import com.example.proyectofinalcarwash.data.model.ClienteRegisterRequest
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 object AuthRepository {
 
-    fun registerUser(
+    suspend fun registerUser(
+        context: Context,
         nombre: String,
         email: String,
         contraseña: String,
-        telefono: String,
-        onSuccess: (AuthResponse) -> Unit,
-        onError: (String) -> Unit
-    ) {
-        val request = ClienteRegisterRequest(nombre, email, contraseña, telefono)
-
-        RetrofitClient.api.registerCliente(request).enqueue(object : Callback<AuthResponse> {
-            override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
-                if (response.isSuccessful && response.body() != null) {
-                    onSuccess(response.body()!!)
-                } else {
-                    onError("Error: ${response.code()} ${response.message()}")
-                }
-            }
-
-            override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
-                onError("Error de red: ${t.localizedMessage}")
-            }
-        })
+        telefono: String
+    ): Result<AuthResponse> {
+        return try {
+            val api = RetrofitClient.create(context)
+            val request = ClienteRegisterRequest(nombre, email, contraseña, telefono)
+            val response = api.registerCliente(request)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

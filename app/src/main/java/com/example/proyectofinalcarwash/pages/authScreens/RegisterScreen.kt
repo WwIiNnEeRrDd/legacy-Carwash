@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectofinalcarwash.R
 import com.example.proyectofinalcarwash.viewmodel.RegisterViewModel
+import com.example.proyectofinalcarwash.viewmodel.Result
 
 @Composable
 fun RegisterScreen(
@@ -40,15 +41,17 @@ fun RegisterScreen(
     val registerState by viewModel.registerState.collectAsState()
 
     LaunchedEffect(registerState) {
-        when (val result = registerState) {
-            is RegisterViewModel.Result.Success -> {
-                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                onSuccessRegister()
+        registerState?.let { result ->
+            when (result) {
+                is Result.Success -> {
+                    Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                    onSuccessRegister()
+                }
+                is Result.Failure -> {
+                    Toast.makeText(context, result.exception.message ?: "Error en el registro", Toast.LENGTH_LONG).show()
+                }
+                else -> Unit // para exhaustividad
             }
-            is RegisterViewModel.Result.Failure -> {
-                Toast.makeText(context, result.exception.message ?: "Error", Toast.LENGTH_LONG).show()
-            }
-            null -> {}
         }
     }
 
@@ -71,8 +74,8 @@ fun RegisterScreen(
                 value = nombre.value,
                 onValueChange = { nombre.value = it },
                 label = { Text("Nombre") },
-                singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
             )
 
@@ -80,8 +83,8 @@ fun RegisterScreen(
                 value = email.value,
                 onValueChange = { email.value = it },
                 label = { Text("Correo electrónico") },
-                singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Next,
                     keyboardType = KeyboardType.Email
@@ -92,20 +95,18 @@ fun RegisterScreen(
                 value = password.value,
                 onValueChange = { password.value = it },
                 label = { Text("Contraseña") },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 singleLine = true,
                 visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Next,
                     keyboardType = KeyboardType.Password
                 ),
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 trailingIcon = {
+                    val icon = if (passwordVisible.value) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
-                        Icon(
-                            imageVector = if (passwordVisible.value) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = "Ver contraseña"
-                        )
+                        Icon(icon, contentDescription = null)
                     }
                 }
             )
@@ -114,20 +115,18 @@ fun RegisterScreen(
                 value = confirmPassword.value,
                 onValueChange = { confirmPassword.value = it },
                 label = { Text("Confirmar contraseña") },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 singleLine = true,
                 visualTransformation = if (confirmPasswordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Done,
                     keyboardType = KeyboardType.Password
                 ),
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 trailingIcon = {
+                    val icon = if (confirmPasswordVisible.value) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { confirmPasswordVisible.value = !confirmPasswordVisible.value }) {
-                        Icon(
-                            imageVector = if (confirmPasswordVisible.value) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = "Ver contraseña"
-                        )
+                        Icon(icon, contentDescription = null)
                     }
                 }
             )
@@ -142,13 +141,12 @@ fun RegisterScreen(
                         viewModel.register(
                             nombre = nombre.value,
                             email = email.value,
-                            contraseña = password.value
+                            contraseña = password.value,
+                            telefono = "" // si no se pide en UI, ponlo vacío
                         )
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
             ) {
                 Text("Registrarme")
             }

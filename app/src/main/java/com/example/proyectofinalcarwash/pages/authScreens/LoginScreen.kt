@@ -32,7 +32,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    val email = remember { mutableStateOf("") }
+    val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val passwordVisible = remember { mutableStateOf(false) }
 
@@ -41,19 +41,19 @@ fun LoginScreen(
     LaunchedEffect(loginState) {
         when (val result = loginState) {
             is LoginResult.Success -> {
+                val token = result.data.token
+                // Guardar token localmente si lo necesitas
                 Toast.makeText(context, "Bienvenido", Toast.LENGTH_SHORT).show()
                 onSuccessLogin()
             }
             is LoginResult.Error -> {
                 Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
             }
-            else -> Unit
+            LoginResult.Idle, LoginResult.Loading -> Unit
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
+    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
         Column(
             modifier = modifier
                 .padding(paddingValues)
@@ -65,19 +65,15 @@ fun LoginScreen(
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo Legacy Carwash",
-                modifier = Modifier
-                    .height(200.dp)
-                    .padding(bottom = 32.dp)
+                modifier = Modifier.height(180.dp).padding(bottom = 24.dp)
             )
 
             OutlinedTextField(
-                value = email.value,
-                onValueChange = { email.value = it },
+                value = username.value,
+                onValueChange = { username.value = it },
                 label = { Text("Correo electrónico") },
                 singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Next,
                     keyboardType = KeyboardType.Email
@@ -90,34 +86,29 @@ fun LoginScreen(
                 label = { Text("Contraseña") },
                 singleLine = true,
                 visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Done,
                     keyboardType = KeyboardType.Password
                 ),
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 trailingIcon = {
-                    val icon = if (passwordVisible.value) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    val desc = if (passwordVisible.value) "Ocultar contraseña" else "Mostrar contraseña"
+                    val icon = if (passwordVisible.value) Icons.Default.Visibility else Icons.Default.VisibilityOff
                     IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
-                        Icon(imageVector = icon, contentDescription = desc)
+                        Icon(icon, contentDescription = null)
                     }
                 }
             )
 
             Button(
                 onClick = {
-                    if (email.value.isBlank() || password.value.isBlank()) {
+                    if (username.value.isBlank() || password.value.isBlank()) {
                         Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                     } else {
-                        viewModel.login(email.value.trim(), password.value)
+                        viewModel.login(username.value.trim(), password.value)
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
             ) {
                 Text("Iniciar Sesión")
             }

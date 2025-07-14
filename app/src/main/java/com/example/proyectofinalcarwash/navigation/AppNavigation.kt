@@ -1,22 +1,22 @@
 package com.example.proyectofinalcarwash.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectofinalcarwash.ui.splash.SplashScreen
 import com.example.proyectofinalcarwash.pages.authScreens.LoginScreen
 import com.example.proyectofinalcarwash.pages.authScreens.RegisterScreen
 import com.example.proyectofinalcarwash.home.HomeScreen
-import com.example.proyectofinalcarwash.screens.ServicesScreen
-import com.example.proyectofinalcarwash.screens.AppointmentScreen
-import com.example.proyectofinalcarwash.screens.Servicio
-import com.example.proyectofinalcarwash.screens.CalendarScreen
-import com.example.proyectofinalcarwash.screens.ProfileScreen
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
-import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.proyectofinalcarwash.screens.*
 import com.example.proyectofinalcarwash.ui.components.MainLayout
+import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun AppNavigation() {
@@ -26,26 +26,33 @@ fun AppNavigation() {
         composable("splash") {
             SplashScreen(navController)
         }
+
         composable("login") {
             LoginScreen(
                 onSuccessLogin = {
-                    navController.navigate("home") // cuando el login sea exitoso
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 },
                 onRegisterClick = {
                     navController.navigate("register")
                 }
             )
         }
+
         composable("register") {
             RegisterScreen(
                 onNavigateToLogin = {
-                    navController.popBackStack() // vuelve al login
+                    navController.popBackStack()
                 },
                 onSuccessRegister = {
-                    navController.navigate("home") // o como prefieras
+                    navController.navigate("home") {
+                        popUpTo("register") { inclusive = true }
+                    }
                 }
             )
         }
+
         composable("home") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
             MainLayout(navController, currentDestination) { innerPadding ->
@@ -55,20 +62,24 @@ fun AppNavigation() {
                 )
             }
         }
+
         composable("services") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
+            val serviciosViewModel: ServiciosViewModel = viewModel()
+            val servicios = serviciosViewModel.servicios.collectAsState()
+
             MainLayout(navController, currentDestination) { innerPadding ->
                 ServicesScreen(
                     modifier = Modifier.padding(innerPadding),
-                    /* DATOS DE PRUEBA UNICAMENTE !!!!!!!!! */
-                    servicios = listOf(
-                        Servicio(1, "Lavado completo", "Incluye lavado exterior e interior del vehículo", 15.0),
-                        Servicio(2, "Pulido de pintura", "Mejora el brillo de la pintura y elimina rayones leves", 25.0),
-                        Servicio(3, "Cambio de aceite", "Incluye cambio de aceite y filtro", 40.0)
-                    )
                 )
             }
+
+            // Lanzamos la carga si aún no está hecha
+            LaunchedEffect(true) {
+                serviciosViewModel.fetchServicios()
+            }
         }
+
         composable("agendarCita") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
             MainLayout(navController, currentDestination) { innerPadding ->
@@ -78,12 +89,14 @@ fun AppNavigation() {
                 )
             }
         }
+
         composable("calendar") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
             MainLayout(navController, currentDestination) { innerPadding ->
-                CalendarScreen() // sin navController aquí
+                CalendarScreen()
             }
         }
+
         composable("profile") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
             MainLayout(navController, currentDestination) { innerPadding ->

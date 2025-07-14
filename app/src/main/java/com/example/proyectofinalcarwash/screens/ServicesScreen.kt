@@ -6,25 +6,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.Alignment
-
-data class Servicio(
-    val id: Int,
-    val nombre: String,
-    val descripcion: String,
-    val precio: Double
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
 
 @Composable
 fun ServicesScreen(
     modifier: Modifier = Modifier,
-    servicios: List<Servicio>
+    viewModel: ServiciosViewModel = viewModel()
 ) {
+    val servicios by viewModel.servicios.collectAsState()
+    val error by viewModel.error.collectAsState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -36,34 +35,59 @@ fun ServicesScreen(
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(servicios) { servicio ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        when {
+            error != null -> {
+                Text(
+                    text = error ?: "Error desconocido",
+                    color = Color.Red,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            servicios.isEmpty() -> {
+                Text(
+                    text = "No hay servicios disponibles",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+            else -> {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.CleaningServices,
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 8.dp)
+                    items(servicios) { servicio ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
-                            Text(
-                                text = servicio.nombre,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.CleaningServices,
+                                        contentDescription = null,
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    )
+                                    Text(
+                                        text = servicio.nombre_servicio,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = servicio.descripcion)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Precio: $${servicio.precio}",
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Duración estimada: ${servicio.duracion_estimada} min",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = servicio.descripcion)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Precio: $${servicio.precio}",
-                            color = MaterialTheme.colorScheme.primary
-                        )
                     }
                 }
             }
