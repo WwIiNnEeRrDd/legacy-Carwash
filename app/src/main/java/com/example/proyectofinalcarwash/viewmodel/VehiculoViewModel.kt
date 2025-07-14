@@ -77,4 +77,29 @@ class VehiculosViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
     }
+
+    fun eliminarVehiculo(
+        idVehiculo: Int,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val api = RetrofitClient.create(getApplication())
+                val response = api.eliminarVehiculo(idVehiculo)
+
+                if (response.isSuccessful) {
+                    fetchVehiculos()
+                    onSuccess()
+                } else {
+                    onError("Error al eliminar vehículo: ${response.code()}")
+                }
+            } catch (e: IOException) {
+                onError("No se pudo conectar al servidor")
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
+
 }

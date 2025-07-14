@@ -20,3 +20,5 @@ data class VehiculoRequest(
     val modelo: String,
     val color: String
 )
+
+

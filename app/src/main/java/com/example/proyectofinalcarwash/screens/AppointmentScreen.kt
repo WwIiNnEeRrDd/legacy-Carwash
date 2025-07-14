@@ -180,7 +180,7 @@ fun DateSelector(label: String, date: String, onDateSelected: (String) -> Unit) 
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                DatePickerDialog(
+                val datePickerDialog = DatePickerDialog(
                     context,
                     { _, year, month, day ->
                         onDateSelected("%04d-%02d-%02d".format(year, month + 1, day))
@@ -188,7 +188,12 @@ fun DateSelector(label: String, date: String, onDateSelected: (String) -> Unit) 
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
                     calendar.get(Calendar.DAY_OF_MONTH)
-                ).show()
+                )
+
+                // Esta línea evita fechas pasadas
+                datePickerDialog.datePicker.minDate = System.currentTimeMillis()
+
+                datePickerDialog.show()
             }
     ) {
         OutlinedTextField(
@@ -212,13 +217,39 @@ fun TimeSelector(label: String, time: String, onTimeSelected: (String) -> Unit) 
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
+                val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+                val currentMinute = calendar.get(Calendar.MINUTE)
+
                 TimePickerDialog(
                     context,
                     { _, hourOfDay, minute ->
+                        // Verificar si la fecha es hoy
+                        val selectedDate = calendar.clone() as Calendar
+                        selectedDate.set(Calendar.HOUR_OF_DAY, 0)
+                        selectedDate.set(Calendar.MINUTE, 0)
+                        selectedDate.set(Calendar.SECOND, 0)
+                        selectedDate.set(Calendar.MILLISECOND, 0)
+
+                        val today = Calendar.getInstance()
+                        today.set(Calendar.HOUR_OF_DAY, 0)
+                        today.set(Calendar.MINUTE, 0)
+                        today.set(Calendar.SECOND, 0)
+                        today.set(Calendar.MILLISECOND, 0)
+
+                        val isToday = selectedDate.timeInMillis == today.timeInMillis
+
+                        if (isToday) {
+                            // Si es hoy, validar que la hora no sea pasada
+                            if (hourOfDay < currentHour || (hourOfDay == currentHour && minute < currentMinute)) {
+                                Toast.makeText(context, "No puedes seleccionar una hora pasada", Toast.LENGTH_SHORT).show()
+                                return@TimePickerDialog
+                            }
+                        }
+
                         onTimeSelected("%02d:%02d".format(hourOfDay, minute))
                     },
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE),
+                    currentHour,
+                    currentMinute,
                     true
                 ).show()
             }

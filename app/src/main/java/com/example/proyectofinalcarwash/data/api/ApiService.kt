@@ -40,4 +40,13 @@ interface ApiService {
 
     @GET("/api/citas/proxima")
     suspend fun getProximaCita(): Response<Cita>
+
+    @DELETE("/api/vehiculos/{id_vehiculo}")
+    suspend fun eliminarVehiculo(@Path("id_vehiculo") id: Int): Response<Unit>
+
+    @PUT("/api/citas/{id_cita}/estado")
+    suspend fun actualizarEstadoCita(
+        @Path("id_cita") id: Int,
+        @Body estado: EstadoCitaRequest
+    ): Response<Unit>
 }

@@ -35,6 +35,8 @@ data class CitaVisual(
     val vehiculo: String,
 )
 
+data class EstadoCitaRequest(val estado: String)
+
 // Función de extensión que convierte un Cita del backend a CitaVisual
 fun Cita.toVisual(): CitaVisual {
     val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME // para formato con Z al final
@@ -48,3 +50,5 @@ fun Cita.toVisual(): CitaVisual {
         vehiculo = this.placa
     )
 }
+
+

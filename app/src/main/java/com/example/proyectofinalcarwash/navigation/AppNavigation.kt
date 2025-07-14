@@ -132,21 +132,41 @@ fun AppNavigation() {
         }
 
         composable(
-            "detalleCita/{fecha}/{hora}/{servicio}/{vehiculo}/{duracionMin}"
+            route = "detalleCita/{idCita}/{fecha}/{hora}/{servicio}/{vehiculo}/{duracionMin}/{estado}?comentario={comentario}",
+            arguments = listOf(
+                navArgument("idCita") { type = NavType.IntType },
+                navArgument("fecha") { type = NavType.StringType },
+                navArgument("hora") { type = NavType.StringType },
+                navArgument("servicio") { type = NavType.StringType },
+                navArgument("vehiculo") { type = NavType.StringType },
+                navArgument("duracionMin") { type = NavType.IntType },
+                navArgument("estado") { type = NavType.StringType },
+                navArgument("comentario") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
         ) { backStackEntry ->
+            val idCita = backStackEntry.arguments?.getInt("idCita") ?: 0
             val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
             val hora = backStackEntry.arguments?.getString("hora") ?: ""
             val servicio = backStackEntry.arguments?.getString("servicio") ?: ""
             val vehiculo = backStackEntry.arguments?.getString("vehiculo") ?: ""
-            val duracionMin = backStackEntry.arguments?.getString("duracionMin")?.toIntOrNull() ?: 0
+            val duracionMin = backStackEntry.arguments?.getInt("duracionMin") ?: 0
+            val estado = backStackEntry.arguments?.getString("estado") ?: ""
+            val comentario = backStackEntry.arguments?.getString("comentario") ?: ""
 
             DetalleCitaScreen(
                 navController = navController,
+                idCita = idCita,
                 fechaStr = fecha,
                 hora = hora,
                 servicio = servicio,
                 vehiculo = vehiculo,
-                duracionMin = duracionMin
+                duracionMin = duracionMin,
+                estado = estado,
+                comentario = comentario
             )
         }
 

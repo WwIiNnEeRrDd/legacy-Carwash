@@ -1,6 +1,7 @@
 package com.example.proyectofinalcarwash.screens
 
 import android.content.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.ui.res.painterResource
+import com.example.proyectofinalcarwash.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,47 +48,54 @@ fun ProfileScreen(
         Column(
             modifier = modifier
                 .padding(innerPadding)
-                .padding(24.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween, // Esto distribuye verticalmente y no necesitarás scroll
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar de perfil
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Avatar y nombre
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.carwashpfp),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                    )
+                }
+
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(nombre, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                // Información de contacto
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    InfoRow(icon = Icons.Default.Email, text = email)
+                    InfoRow(icon = Icons.Default.Home, text = residencia)
+                    InfoRow(icon = Icons.Default.Phone, text = telefono)
+                }
             }
 
-            Text(nombre, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-
-            // Información de contacto
+            // Configuración abajo
             Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                horizontalAlignment = Alignment.Start
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                InfoRow(icon = Icons.Default.Email, text = email)
-                InfoRow(icon = Icons.Default.Home, text = residencia)
-                InfoRow(icon = Icons.Default.Phone, text = telefono)
-            }
-
-            Divider()
-
-            Text("Configuración", style = MaterialTheme.typography.titleMedium)
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Divider()
+                Text("Configuración", style = MaterialTheme.typography.titleMedium)
                 SettingCard(icon = Icons.Default.DirectionsCar, label = "Mis Vehículos") {
-                    navController.navigate("vehiculos")
+                    navController.navigate("vehicle")
                 }
                 SettingCard(icon = Icons.Default.History, label = "Historial de Citas") {
                     navController.navigate("historial")
@@ -101,7 +111,7 @@ fun ProfileScreen(
                         .edit().clear().apply()
 
                     navController.navigate("login") {
-                        popUpTo("home") { inclusive = true } // limpia la pila
+                        popUpTo("home") { inclusive = true }
                     }
                 }
             }

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import com.example.proyectofinalcarwash.data.model.EstadoCitaRequest
 
 class CitasViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -75,6 +76,28 @@ class CitasViewModel(application: Application) : AndroidViewModel(application) {
                 _proximaCita.value = if (response.isSuccessful) response.body() else null
             } catch (e: Exception) {
                 _proximaCita.value = null
+            }
+        }
+    }
+
+    fun cancelarCita(
+        idCita: Int,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val api = RetrofitClient.create(getApplication())
+                val response = api.actualizarEstadoCita(idCita, EstadoCitaRequest("cancelada"))
+                if (response.isSuccessful) {
+                    fetchCitas()
+                    fetchProximaCita()
+                    onSuccess()
+                } else {
+                    onError("Error: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
             }
         }
     }

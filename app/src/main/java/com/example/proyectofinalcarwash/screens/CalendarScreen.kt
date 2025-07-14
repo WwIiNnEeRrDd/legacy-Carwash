@@ -15,14 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.proyectofinalcarwash.data.model.toVisual
 import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.*
@@ -40,12 +40,9 @@ fun CalendarScreen(
 
     val citas by citasViewModel.citas.collectAsState()
 
-    val citasVisuales = remember(citas) {
-        runCatching {
-            citas.map { it.toVisual() }
-        }.getOrDefault(emptyList())
+    val citasFiltradas = citas.filter {
+        LocalDate.parse(it.fecha_cita.substring(0, 10)) == diaSeleccionado
     }
-    val citasFiltradas = citasVisuales.filter { it.fecha == diaSeleccionado }
 
     val rangoDias = (-10..10).map { hoy.plusDays(it.toLong()) }
     val indexHoy = rangoDias.indexOf(hoy)
@@ -80,8 +77,15 @@ fun CalendarScreen(
                             .clickable { diaSeleccionado = fecha }
                             .then(
                                 if (esHoy) Modifier
-                                    .background(Color.Transparent, shape = MaterialTheme.shapes.small)
-                                    .border(2.dp, MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small)
+                                    .background(
+                                        Color.Transparent,
+                                        shape = MaterialTheme.shapes.small
+                                    )
+                                    .border(
+                                        2.dp,
+                                        MaterialTheme.colorScheme.primary,
+                                        shape = MaterialTheme.shapes.small
+                                    )
                                 else Modifier
                             )
                             .background(
@@ -94,7 +98,6 @@ fun CalendarScreen(
                     ) {
                         Text(
                             text = fecha.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-                            fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
                             color = if (esHoy) MaterialTheme.colorScheme.primary else Color.Unspecified
                         )
@@ -127,17 +130,25 @@ fun CalendarScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
+                                    val fechaCorta = cita.fecha_cita.substring(0, 10)
+                                    val horaEncoded = URLEncoder.encode(cita.hora_cita, StandardCharsets.UTF_8.toString())
+                                    val servicioEncoded = URLEncoder.encode(cita.nombre_servicio, StandardCharsets.UTF_8.toString())
+                                    val placaEncoded = URLEncoder.encode(cita.placa, StandardCharsets.UTF_8.toString())
+                                    val estadoEncoded = URLEncoder.encode(cita.estado, StandardCharsets.UTF_8.toString())
+                                    val comentarioEncoded = URLEncoder.encode(cita.comentario_cliente ?: "", StandardCharsets.UTF_8.toString())
+
                                     navController.navigate(
-                                        "detalleCita/${cita.fecha}/${cita.hora}/${cita.servicio}/${cita.vehiculo}/${cita.duracionMin}"
+                                        "detalleCita/${cita.id_cita}/$fechaCorta/$horaEncoded/$servicioEncoded/$placaEncoded/${cita.duracion_estimada}/$estadoEncoded?comentario=$comentarioEncoded"
                                     )
                                 },
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text("🕒 ${cita.hora} — ${cita.duracionMin} min", fontWeight = FontWeight.SemiBold)
+                                Text("🕒 ${cita.hora_cita.take(5)} — ${cita.duracion_estimada} min", fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(4.dp))
-                                Text("🧽 Servicio: ${cita.servicio}")
-                                Text("🚗 Vehículo: ${cita.vehiculo}")
+                                Text("🧽 Servicio: ${cita.nombre_servicio}")
+                                Text("🚗 Vehículo: ${cita.placa}")
+                                Text("📌 Estado: ${cita.estado}")
                             }
                         }
                     }
