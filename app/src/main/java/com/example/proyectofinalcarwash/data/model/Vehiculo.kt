@@ -6,3 +6,15 @@ data class Vehiculo(
     val modelo: String,
     val placa: String
 )
+
+data class CrearVehiculoResponse(
+    val mensaje: String,
+    val vehiculo: Vehiculo
+)
+
+data class VehiculoRequest(
+    val placa: String,
+    val marca: String,
+    val modelo: String,
+    val color: String
+)

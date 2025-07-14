@@ -1,5 +1,7 @@
 package com.example.proyectofinalcarwash.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -25,6 +27,7 @@ import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.dp
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -99,9 +102,47 @@ fun AppNavigation() {
 
         composable("calendar") {
             val currentDestination = navController.currentBackStackEntryAsState().value?.destination
-            MainLayout(navController, currentDestination) { innerPadding ->
-                CalendarScreen()
+            MainLayout(
+                navController = navController,
+                currentDestination = currentDestination,
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = { navController.navigate("agendarCita") },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(80.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Agregar Cita",
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                CalendarScreen(
+                    navController = navController,
+                    modifier = Modifier.padding(innerPadding)
+                )
             }
+        }
+
+        composable(
+            "detalleCita/{fecha}/{hora}/{servicio}/{vehiculo}/{duracionMin}"
+        ) { backStackEntry ->
+            val fecha = backStackEntry.arguments?.getString("fecha") ?: ""
+            val hora = backStackEntry.arguments?.getString("hora") ?: ""
+            val servicio = backStackEntry.arguments?.getString("servicio") ?: ""
+            val vehiculo = backStackEntry.arguments?.getString("vehiculo") ?: ""
+            val duracionMin = backStackEntry.arguments?.getString("duracionMin")?.toIntOrNull() ?: 0
+
+            DetalleCitaScreen(
+                navController = navController,
+                fechaStr = fecha,
+                hora = hora,
+                servicio = servicio,
+                vehiculo = vehiculo,
+                duracionMin = duracionMin
+            )
         }
 
         composable("profile") {

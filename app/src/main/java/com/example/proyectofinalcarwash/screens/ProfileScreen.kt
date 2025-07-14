@@ -1,5 +1,6 @@
 package com.example.proyectofinalcarwash.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +26,15 @@ fun ProfileScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
+    // Cargar datos del cliente desde SharedPreferences
+    val nombre = prefs.getString("nombre", "Nombre no disponible") ?: ""
+    val email = prefs.getString("email", "Correo no disponible") ?: ""
+    val telefono = prefs.getString("telefono", "Teléfono no disponible") ?: ""
+    val residencia = prefs.getString("residencia", "Residencia no disponible") ?: ""
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -36,7 +47,7 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .padding(24.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()), // 👈 para permitir scroll
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -56,16 +67,16 @@ fun ProfileScreen(
                 )
             }
 
-            Text("José Encalada", fontSize = 20.sp, fontWeight = FontWeight.Medium)
+            Text(nombre, fontSize = 20.sp, fontWeight = FontWeight.Medium)
 
             // Información de contacto
             Column(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                InfoRow(icon = Icons.Default.Email, text = "jose@email.com")
-                InfoRow(icon = Icons.Default.Home, text = "Panamá")
-                InfoRow(icon = Icons.Default.Phone, text = "+507 6000-1234")
+                InfoRow(icon = Icons.Default.Email, text = email)
+                InfoRow(icon = Icons.Default.Home, text = residencia)
+                InfoRow(icon = Icons.Default.Phone, text = telefono)
             }
 
             Divider()
@@ -83,6 +94,8 @@ fun ProfileScreen(
                     navController.navigate("editarPerfil")
                 }
                 SettingCard(icon = Icons.Default.Logout, label = "Cerrar Sesión") {
+                    // Limpiar SharedPreferences al cerrar sesión
+                    prefs.edit().clear().apply()
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true } // limpia la pila
                     }

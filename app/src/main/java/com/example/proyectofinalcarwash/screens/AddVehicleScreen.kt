@@ -11,13 +11,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.proyectofinalcarwash.data.model.VehiculoRequest
+import com.example.proyectofinalcarwash.viewmodel.VehiculosViewModel
+import kotlinx.coroutines.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgregarVehiculoScreen(
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    vehiculosViewModel: VehiculosViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
@@ -39,7 +44,6 @@ fun AgregarVehiculoScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             OutlinedTextField(
                 value = placa,
                 onValueChange = { placa = it },
@@ -82,11 +86,21 @@ fun AgregarVehiculoScreen(
                 onClick = {
                     if (placa.isBlank() || marca.isBlank() || modelo.isBlank() || color.isBlank()) {
                         Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
-                    } else {
-                        // Aquí harías el llamado al ViewModel o API para guardar el vehículo
-                        Toast.makeText(context, "Vehículo registrado correctamente", Toast.LENGTH_SHORT).show()
-                        navController.popBackStack() // o navController.navigate("vehiculos")
+                        return@Button
                     }
+
+                    val request = VehiculoRequest(placa, marca, modelo, color)
+
+                    vehiculosViewModel.crearVehiculo(
+                        vehiculoRequest = request,
+                        onSuccess = {
+                            Toast.makeText(context, "Vehículo registrado correctamente", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        },
+                        onError = { msg ->
+                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        }
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

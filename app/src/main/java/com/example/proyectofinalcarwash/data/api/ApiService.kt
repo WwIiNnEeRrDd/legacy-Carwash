@@ -1,18 +1,8 @@
 package com.example.proyectofinalcarwash.data.api
 
-import com.example.proyectofinalcarwash.data.model.AuthResponse
-import com.example.proyectofinalcarwash.data.model.ClienteLoginRequest
-import com.example.proyectofinalcarwash.data.model.ClienteRegisterRequest
-import com.example.proyectofinalcarwash.data.model.Servicio
-import com.example.proyectofinalcarwash.data.model.Vehiculo
-import com.example.proyectofinalcarwash.data.model.Cliente
-import com.example.proyectofinalcarwash.data.model.ActualizarPerfilResponse
+import com.example.proyectofinalcarwash.data.model.*
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.*
 
 interface ApiService {
     @POST("/api/auth/register")
@@ -30,4 +20,9 @@ interface ApiService {
     @PUT("/api/cliente/actualizar")
     suspend fun actualizarPerfil(@Body cliente: Cliente): Response<ActualizarPerfilResponse>
 
+    @POST("/api/vehiculos/crear")
+    suspend fun crearVehiculo(
+        @Header("Authorization") token: String,
+        @Body vehiculo: VehiculoRequest
+    ): Response<CrearVehiculoResponse>
 }

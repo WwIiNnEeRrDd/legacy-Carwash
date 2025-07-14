@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import com.example.proyectofinalcarwash.data.model.VehiculoRequest
 
 class VehiculosViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -42,6 +43,35 @@ class VehiculosViewModel(application: Application) : AndroidViewModel(applicatio
                 _error.value = "Error HTTP: ${e.message}"
             } catch (e: Exception) {
                 _error.value = "Error desconocido: ${e.message}"
+            }
+        }
+    }
+
+    fun crearVehiculo(
+        vehiculoRequest: VehiculoRequest,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val token = getTokenFromPrefs()
+                val api = RetrofitClient.create(getApplication())
+                val response = api.crearVehiculo("Bearer $token", vehiculoRequest)
+
+                if (response.isSuccessful) {
+                    fetchVehiculos() // actualizar lista
+                    onSuccess()
+                } else if (response.code() == 409) {
+                    onError("Ya existe un vehículo con esa placa")
+                } else if (response.code() == 401) {
+                    onError("Sesión expirada. Vuelve a iniciar sesión.")
+                } else {
+                    onError("Error del servidor: ${response.code()}")
+                }
+            } catch (e: IOException) {
+                onError("No se pudo conectar al servidor")
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
             }
         }
     }
