@@ -49,4 +49,12 @@ interface ApiService {
         @Path("id_cita") id: Int,
         @Body estado: EstadoCitaRequest
     ): Response<Unit>
+
+    @GET("/api/promociones")
+    suspend fun getPromociones(): Response<List<Promocion>>
+
+    @GET("/api/promociones/servicio/{id_servicio}")
+    suspend fun getPromocionesPorServicio(
+        @Path("id_servicio") idServicio: Int
+    ): Response<List<Promocion>>
 }

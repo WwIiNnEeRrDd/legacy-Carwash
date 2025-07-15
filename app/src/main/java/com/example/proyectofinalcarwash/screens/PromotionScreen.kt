@@ -46,7 +46,7 @@ fun PromotionScreen(
             }
 
             Button(
-                onClick = { /* Ejemplo: navController.navigate("agendarCita") */ },
+                onClick = { navController.navigate("agendarCita") },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Agendar servicio")

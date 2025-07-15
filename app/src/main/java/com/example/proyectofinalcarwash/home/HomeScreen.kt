@@ -21,8 +21,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.proyectofinalcarwash.R
 import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
+import com.example.proyectofinalcarwash.viewmodel.PromocionesViewModel
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.lazy.LazyColumn
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun HomeScreen(
@@ -35,18 +38,17 @@ fun HomeScreen(
     val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
     val nombreUsuario = remember { prefs.getString("nombre", "usuario") ?: "usuario" }
 
-    val viewModel: CitasViewModel = viewModel()
-    val proximaCita by viewModel.proximaCita.collectAsState()
+    val citasViewModel: CitasViewModel = viewModel()
+    val proximaCita by citasViewModel.proximaCita.collectAsState()
+
+    val promocionesViewModel: PromocionesViewModel = viewModel()
+    val promociones by promocionesViewModel.promociones.collectAsState()
+    val errorPromos by promocionesViewModel.error.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.fetchProximaCita()
+        citasViewModel.fetchProximaCita()
+        promocionesViewModel.fetchPromociones()
     }
-
-    val promociones = listOf(
-        "15% de descuento en Lavado Premium hasta el 20 de julio",
-        "Promoción: 2x1 en Pulido de pintura este fin de semana",
-        "Nuevo servicio disponible: Desinfección interior"
-    )
 
     val tips = listOf(
         "Lava tu coche cada 2 semanas para evitar acumulación de suciedad.",
@@ -99,22 +101,43 @@ fun HomeScreen(
             }
 
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Próxima cita", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
+                if (proximaCita != null) {
+                    val cita = proximaCita!!
+                    val fechaCorta = cita.fecha_cita.substring(0, 10)
+                    val horaEncoded = URLEncoder.encode(cita.hora_cita, StandardCharsets.UTF_8.toString())
+                    val servicioEncoded = URLEncoder.encode(cita.nombre_servicio, StandardCharsets.UTF_8.toString())
+                    val placaEncoded = URLEncoder.encode(cita.placa, StandardCharsets.UTF_8.toString())
+                    val estadoEncoded = URLEncoder.encode(cita.estado, StandardCharsets.UTF_8.toString())
+                    val comentarioEncoded = URLEncoder.encode(cita.comentario_cliente ?: "", StandardCharsets.UTF_8.toString())
 
-                        if (proximaCita != null) {
-                            val cita = proximaCita!!
-                            Text("📅 Fecha: ${cita.fecha_cita.take(10)}")
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                navController.navigate(
+                                    "detalleCita/${cita.id_cita}/$fechaCorta/$horaEncoded/$servicioEncoded/$placaEncoded/${cita.duracion_estimada}/$estadoEncoded?comentario=$comentarioEncoded"
+                                )
+                            },
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Próxima cita", style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("📅 Fecha: ${fechaCorta}")
                             Text("🕒 Hora: ${cita.hora_cita.take(5)}")
                             Text("🚗 Vehículo: ${cita.placa}")
                             Text("🧽 Servicio: ${cita.nombre_servicio}")
                             Text("📌 Estado: ${cita.estado}")
-                        } else {
+                        }
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Próxima cita", style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text("No tienes citas próximas agendadas.")
                         }
                     }
@@ -123,19 +146,31 @@ fun HomeScreen(
 
             item {
                 Text("📢 Promociones", style = MaterialTheme.typography.titleMedium)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(promociones.size) { index ->
-                        Card(
-                            modifier = Modifier
-                                .width(260.dp)
-                                .height(120.dp)
-                                .clickable {
-                                    navController.navigate("promotion/${Uri.encode(promociones[index])}")
-                                },
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
-                        ) {
-                            Box(modifier = Modifier.padding(16.dp)) {
-                                Text(promociones[index])
+
+                if (errorPromos != null) {
+                    Text("Error al cargar promociones: $errorPromos", color = MaterialTheme.colorScheme.error)
+                } else if (promociones.isEmpty()) {
+                    Text("No hay promociones disponibles.")
+                } else {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(promociones.size) { index ->
+                            val promo = promociones[index]
+                            val texto = "🎉 ${promo.nombre_promocion}\n🧽 ${promo.nombre_servicio}\n💬 ${promo.descripcion}\n🔖 ${promo.descuento_porcentaje}% OFF"
+                            Card(
+                                modifier = Modifier
+                                    .width(280.dp)
+                                    .height(150.dp)
+                                    .clickable {
+                                        navController.navigate("promotion?text=${Uri.encode(texto)}")
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("🎉 ${promo.nombre_promocion}")
+                                    Text("🧽 ${promo.nombre_servicio}")
+                                    Text("💬 ${promo.descripcion}")
+                                    Text("🔖 ${promo.descuento_porcentaje}% OFF")
+                                }
                             }
                         }
                     }

@@ -23,6 +23,8 @@ import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
 import com.example.proyectofinalcarwash.viewmodel.VehiculosViewModel
 import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
 import com.example.proyectofinalcarwash.data.model.CrearCitaRequest
+import com.example.proyectofinalcarwash.data.model.Vehiculo
+import com.example.proyectofinalcarwash.data.model.Servicio
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -42,8 +44,8 @@ fun AppointmentScreen(
     val vehiculos by vehiculosViewModel.vehiculos.collectAsState()
     val servicios by serviciosViewModel.servicios.collectAsState()
 
-    var vehiculoSeleccionado by remember { mutableStateOf<String?>(null) }
-    var servicioSeleccionado by remember { mutableStateOf<String?>(null) }
+    var vehiculoSeleccionado by remember { mutableStateOf<Vehiculo?>(null) }
+    var servicioSeleccionado by remember { mutableStateOf<Servicio?>(null) }
     var fecha by remember { mutableStateOf("") }
     var hora by remember { mutableStateOf("") }
     var comentario by remember { mutableStateOf("") }
@@ -68,17 +70,19 @@ fun AppointmentScreen(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CustomDropdownMenu(
+            CustomDropdownMenuObj(
                 label = "Selecciona un vehículo",
-                options = vehiculos.map { "${it.id} - ${it.placa}" },
+                options = vehiculos,
                 selectedOption = vehiculoSeleccionado,
+                displayText = { it.placa },
                 onOptionSelected = { vehiculoSeleccionado = it }
             )
 
-            CustomDropdownMenu(
+            CustomDropdownMenuObj(
                 label = "Selecciona un servicio",
-                options = servicios.map { "${it.id_servicio} - ${it.nombre_servicio}" },
+                options = servicios,
                 selectedOption = servicioSeleccionado,
+                displayText = { it.nombre_servicio },
                 onOptionSelected = { servicioSeleccionado = it }
             )
 
@@ -95,8 +99,8 @@ fun AppointmentScreen(
 
             Button(
                 onClick = {
-                    val idVehiculo = vehiculoSeleccionado?.split(" - ")?.get(0)?.toIntOrNull()
-                    val idServicio = servicioSeleccionado?.split(" - ")?.get(0)?.toIntOrNull()
+                    val idVehiculo = vehiculoSeleccionado?.id
+                    val idServicio = servicioSeleccionado?.id_servicio
 
                     if (idVehiculo == null || idServicio == null || fecha.isBlank() || hora.isBlank()) {
                         Toast.makeText(context, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
@@ -134,11 +138,12 @@ fun AppointmentScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomDropdownMenu(
+fun <T> CustomDropdownMenuObj(
     label: String,
-    options: List<String>,
-    selectedOption: String?,
-    onOptionSelected: (String) -> Unit
+    options: List<T>,
+    selectedOption: T?,
+    displayText: (T) -> String,
+    onOptionSelected: (T) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -147,20 +152,21 @@ fun CustomDropdownMenu(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = selectedOption.orEmpty(),
+            value = selectedOption?.let(displayText).orEmpty(),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth()
         )
+
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(displayText(option)) },
                     onClick = {
                         onOptionSelected(option)
                         expanded = false
@@ -180,7 +186,7 @@ fun DateSelector(label: String, date: String, onDateSelected: (String) -> Unit) 
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                val datePickerDialog = DatePickerDialog(
+                DatePickerDialog(
                     context,
                     { _, year, month, day ->
                         onDateSelected("%04d-%02d-%02d".format(year, month + 1, day))
@@ -188,12 +194,10 @@ fun DateSelector(label: String, date: String, onDateSelected: (String) -> Unit) 
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
                     calendar.get(Calendar.DAY_OF_MONTH)
-                )
-
-                // Esta línea evita fechas pasadas
-                datePickerDialog.datePicker.minDate = System.currentTimeMillis()
-
-                datePickerDialog.show()
+                ).apply {
+                    datePicker.minDate = System.currentTimeMillis()
+                    show()
+                }
             }
     ) {
         OutlinedTextField(
@@ -219,31 +223,21 @@ fun TimeSelector(label: String, time: String, onTimeSelected: (String) -> Unit) 
             .clickable {
                 val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
                 val currentMinute = calendar.get(Calendar.MINUTE)
+                val currentDate = Calendar.getInstance()
 
                 TimePickerDialog(
                     context,
                     { _, hourOfDay, minute ->
-                        // Verificar si la fecha es hoy
-                        val selectedDate = calendar.clone() as Calendar
-                        selectedDate.set(Calendar.HOUR_OF_DAY, 0)
-                        selectedDate.set(Calendar.MINUTE, 0)
-                        selectedDate.set(Calendar.SECOND, 0)
-                        selectedDate.set(Calendar.MILLISECOND, 0)
+                        val selectedDate = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, hourOfDay)
+                            set(Calendar.MINUTE, minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
 
-                        val today = Calendar.getInstance()
-                        today.set(Calendar.HOUR_OF_DAY, 0)
-                        today.set(Calendar.MINUTE, 0)
-                        today.set(Calendar.SECOND, 0)
-                        today.set(Calendar.MILLISECOND, 0)
-
-                        val isToday = selectedDate.timeInMillis == today.timeInMillis
-
-                        if (isToday) {
-                            // Si es hoy, validar que la hora no sea pasada
-                            if (hourOfDay < currentHour || (hourOfDay == currentHour && minute < currentMinute)) {
-                                Toast.makeText(context, "No puedes seleccionar una hora pasada", Toast.LENGTH_SHORT).show()
-                                return@TimePickerDialog
-                            }
+                        if (selectedDate.before(currentDate)) {
+                            Toast.makeText(context, "No puedes seleccionar una hora pasada", Toast.LENGTH_SHORT).show()
+                            return@TimePickerDialog
                         }
 
                         onTimeSelected("%02d:%02d".format(hourOfDay, minute))

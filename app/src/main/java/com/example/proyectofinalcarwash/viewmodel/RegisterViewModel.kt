@@ -35,11 +35,12 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
 
                 _registerState.value = Result.Success(response)
             } catch (e: HttpException) {
-                _registerState.value = Result.Failure(Throwable("Error HTTP: ${e.message()}"))
-            } catch (e: IOException) {
-                _registerState.value = Result.Failure(Throwable("No se pudo conectar al servidor"))
-            } catch (e: Exception) {
-                _registerState.value = Result.Failure(e)
+                val message = when (e.code()) {
+                    400 -> "Solicitud inválida. Verifica los datos ingresados."
+                    409 -> "Este correo ya está registrado. Intenta con otro."
+                    else -> "Error del servidor (${e.code()}): ${e.message()}"
+                }
+                _registerState.value = Result.Failure(Throwable(message))
             }
         }
     }

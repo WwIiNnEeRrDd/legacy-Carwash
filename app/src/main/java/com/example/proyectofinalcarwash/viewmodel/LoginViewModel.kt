@@ -38,11 +38,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
                 _loginState.value = LoginResult.Success(response)
             } catch (e: HttpException) {
-                _loginState.value = LoginResult.Error("Error del servidor: ${e.message}")
-            } catch (e: IOException) {
-                _loginState.value = LoginResult.Error("No se pudo conectar al servidor")
-            } catch (e: Exception) {
-                _loginState.value = LoginResult.Error("Error desconocido: ${e.message}")
+                val message = when (e.code()) {
+                    400 -> "Solicitud incorrecta. Verifica los datos ingresados."
+                    401 -> "Credenciales incorrectas. Intenta de nuevo."
+                    403 -> "Acceso denegado. No tienes permisos para ingresar."
+                    404 -> "Usuario no encontrado. Verifica tu correo o regístrate."
+                    else -> "Error del servidor (${e.code()}): ${e.message()}"
+                }
+                _loginState.value = LoginResult.Error(message)
             }
         }
     }

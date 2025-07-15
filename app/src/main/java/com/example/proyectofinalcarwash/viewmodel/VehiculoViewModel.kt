@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import org.json.JSONObject
 
 class VehiculosViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -92,12 +93,18 @@ class VehiculosViewModel(application: Application) : AndroidViewModel(applicatio
                     fetchVehiculos()
                     onSuccess()
                 } else {
-                    onError("Error al eliminar vehículo: ${response.code()}")
+                    val errorBody = response.errorBody()?.string()
+                    val mensajeError = try {
+                        JSONObject(errorBody).getString("error")
+                    } catch (e: Exception) {
+                        "Error al eliminar vehículo: ${response.code()} ${response.message()}"
+                    }
+                    onError(mensajeError)
                 }
             } catch (e: IOException) {
-                onError("No se pudo conectar al servidor")
+                onError("No se pudo conectar al servidor.")
             } catch (e: Exception) {
-                onError("Error: ${e.message}")
+                onError("Error inesperado: ${e.message}")
             }
         }
     }

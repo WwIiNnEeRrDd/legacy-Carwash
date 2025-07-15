@@ -1,5 +1,6 @@
 package com.example.proyectofinalcarwash.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,10 +15,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import com.example.proyectofinalcarwash.viewmodel.ServiciosViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServicesScreen(
+    navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: ServiciosViewModel = viewModel()
 ) {
@@ -56,7 +62,15 @@ fun ServicesScreen(
                 ) {
                     items(servicios) { servicio ->
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    val encodedNombre = URLEncoder.encode(
+                                        servicio.nombre_servicio,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                    navController.navigate("promocionesServicio/${servicio.id_servicio}/$encodedNombre")
+                                },
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )

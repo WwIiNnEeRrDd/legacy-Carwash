@@ -14,11 +14,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import com.example.proyectofinalcarwash.viewmodel.CitasViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,14 +30,13 @@ fun DetalleCitaScreen(
     hora: String,
     servicio: String,
     vehiculo: String,
-    duracionMin: Int,
     estado: String,
     modifier: Modifier = Modifier,
-    comentario: String = ""
+    comentario: String = "",
+    duracionMin: Int
 ) {
     val citasViewModel: CitasViewModel = viewModel()
     val context = LocalContext.current
-
     val fecha = runCatching { LocalDate.parse(fechaStr) }.getOrElse {
         navController.popBackStack()
         return
@@ -77,7 +76,6 @@ fun DetalleCitaScreen(
             if (comentarioDecoded.isNotBlank()) {
                 Text("📝 Comentario: $comentarioDecoded")
             }
-
             Spacer(modifier = Modifier.height(24.dp))
 
             if (estadoDecoded.equals("pendiente", ignoreCase = true)) {
