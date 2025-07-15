@@ -223,23 +223,10 @@ fun TimeSelector(label: String, time: String, onTimeSelected: (String) -> Unit) 
             .clickable {
                 val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
                 val currentMinute = calendar.get(Calendar.MINUTE)
-                val currentDate = Calendar.getInstance()
 
                 TimePickerDialog(
                     context,
                     { _, hourOfDay, minute ->
-                        val selectedDate = Calendar.getInstance().apply {
-                            set(Calendar.HOUR_OF_DAY, hourOfDay)
-                            set(Calendar.MINUTE, minute)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }
-
-                        if (selectedDate.before(currentDate)) {
-                            Toast.makeText(context, "No puedes seleccionar una hora pasada", Toast.LENGTH_SHORT).show()
-                            return@TimePickerDialog
-                        }
-
                         onTimeSelected("%02d:%02d".format(hourOfDay, minute))
                     },
                     currentHour,
